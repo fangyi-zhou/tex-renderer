@@ -1,11 +1,11 @@
 import React from 'react';
 import { Container, Header, Grid, Input, Button, GridRow, GridColumn } from "semantic-ui-react";
 
-class Main extends React.Component<{}, {pdf_base64?: string}> {
+class Main extends React.Component {
+    go() {
 
-    state = {
-        pdf_base64: undefined,
     }
+
     render() {
         const input_component =
             <Container>
@@ -20,16 +20,14 @@ class Main extends React.Component<{}, {pdf_base64?: string}> {
                         <GridColumn width="4">
                         </GridColumn>
                         <GridColumn width="4">
-                            <Button primary>Render!</Button>
+                            <Button primary onClick={this.go}>Render!</Button>
                         </GridColumn>
                     </GridRow>
                 </Grid>
             </Container>;
-        const pdf_viewer = (this.state.pdf_base64) ? (<div />): (<div />);
         return (<Container>
             <Header size="large">Tex Renderer</Header>
             {input_component}
-            {pdf_viewer}
         </Container>);
     }
 }

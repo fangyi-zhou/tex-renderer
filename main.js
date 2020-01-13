@@ -4,6 +4,7 @@ const app = express()
 const tmp = require('tmp-promise')
 const child_process = require('child-process-promise')
 const fs = require('fs');
+const process = require('process');
 
 function is_valid({ github_name, github_repo, root }) {
     const safe_chars = /^[A-Za-z-_0-9.]+$/;
@@ -39,4 +40,4 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'))
 })
 
-app.listen(8080)
+app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Listening"))
