@@ -6,6 +6,7 @@ const child_process = require('child-process-promise')
 const fs = require('fs');
 const process = require('process');
 const git = require('nodegit');
+const morgan = require('morgan');
 
 const safe_chars = /^[A-Za-z-_0-9.]+$/;
 
@@ -27,6 +28,7 @@ async function render(github_name, github_repo, root) {
 }
 
 app.use(express.static(path.join(__dirname, 'build')))
+app.use(morgan('combined'));
 
 app.get('/render/:github_name/:github_repo/*', async (req, res) => {
     if (!is_valid(req.params)) {
