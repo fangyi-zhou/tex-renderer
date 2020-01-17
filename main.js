@@ -18,7 +18,7 @@ const baseUrl = config.get('baseUrl');
 const RedisStore = require('connect-redis')(session);
 let client = redis.createClient(process.env.REDIS_URL || "redis://127.0.0.1:6379");
 
-passport.use(new GitHubStrategy({... config.get('githubOauthConfig')},
+passport.use(new GitHubStrategy({...config.get('githubOauthConfig')},
   function(accessToken, refreshToken, profile, cb) {
     cb(null, accessToken);
   }
@@ -86,9 +86,9 @@ app.get('/render/:github_name/:github_repo/*', async (req, res) => {
     const { github_name, github_repo } = req.params;
     try {
         const tex_paths = req.url.split('/').slice(4);
-        if (!tex_paths || tex_paths.length == 0) throw new Error();
+        if (!tex_paths || tex_paths.length === 0) throw new Error();
         tex_paths.forEach(path => {
-            if (!path || path == ".." || !safe_chars.test(path)) throw new Error();
+            if (!path || path === ".." || !safe_chars.test(path)) throw new Error();
         });
         const tex_root = tex_paths.join('/');
         const outcome = await render(github_name, github_repo, tex_root, req.user);
