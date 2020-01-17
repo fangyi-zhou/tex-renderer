@@ -1,6 +1,6 @@
-FROM node:stretch
+FROM node:buster
 
-RUN apt update && apt install texlive-full -y
+RUN apt update && apt install texlive-latex-extra latexmk -y && rm -rf /var/lib/apt/lists
 
 WORKDIR /usr/src/app
 
