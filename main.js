@@ -11,8 +11,12 @@ const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
 const config = require('config');
 const http = require('http');
+const redis = require('redis');
 
 const baseUrl = config.get('baseUrl');
+
+const RedisStore = require('connect-redis')(session);
+let client = redis.createClient(process.env.REDIS_URL || "redis://127.0.0.1:6379");
 
 passport.use(new GitHubStrategy({... config.get('githubOauthConfig')},
   function(accessToken, refreshToken, profile, cb) {
@@ -21,8 +25,9 @@ passport.use(new GitHubStrategy({... config.get('githubOauthConfig')},
 ));
 
 app.use(session({
+  store: new RedisStore({ client }),
   secret: 'tex-renderer',
-  resave: true,
+  resave: false,
   saveUninitialized: true,
 }));
 app.use(passport.initialize());
