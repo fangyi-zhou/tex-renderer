@@ -10,6 +10,9 @@ const session = require('express-session');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
 const config = require('config');
+const http = require('http');
+
+const baseUrl = config.get('baseUrl');
 
 passport.use(new GitHubStrategy({... config.get('githubOauthConfig')},
   function(accessToken, refreshToken, profile, cb) {
@@ -91,5 +94,10 @@ app.get('/auth/callback',
     // Successful authentication, redirect home.
     res.redirect('/');
   });
+
+setInterval(() => {
+  // Keep Heroku app alive
+  http.get(baseUrl, _ => console.log(`Keeping app alive ${(new Date()).toISOString()}`));
+}, 25 * 60 * 1000);
 
 app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Listening"))
