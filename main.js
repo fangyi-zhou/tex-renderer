@@ -47,6 +47,10 @@ function is_valid({ github_name, github_repo }) {
     return safe_chars.test(github_name) && safe_chars.test(github_repo);
 }
 
+class UserError extends Error {
+
+}
+
 async function render(github_name, github_repo, root, token) {
     const tmpdir = await tmp.dir({ unsafeCleanup: true });
     const auth = token ? token + "@" : "";
@@ -55,8 +59,18 @@ async function render(github_name, github_repo, root, token) {
     const latexmk = `latexmk -pdf ${root}`;
     const output_file = path.join(tmpdir.path, path.basename(root, ".tex") + ".pdf");
     const latexmk_cmd = `cd ${tmpdir.path} && ${latexmk}`;
-    await child_process.exec(clone_cmd, { timeout: 20000 });
-    await child_process.exec(latexmk_cmd, { timeout: 40000 });
+    try {
+      await child_process.exec(clone_cmd, { timeout: 20000 });
+    } catch (e) {
+      tmpdir.cleanup();
+      throw new UserError("Error cloning the repository.")
+    }
+    try {
+      await child_process.exec(latexmk_cmd, { timeout: 40000 });
+    } catch (e) {
+      tmpdir.cleanup();
+      throw new UserError("Error running latexmk.")
+    }
     const output = await fs.promises.readFile(output_file);
     tmpdir.cleanup();
     return output;
@@ -81,8 +95,11 @@ app.get('/render/:github_name/:github_repo/*', async (req, res) => {
         res.contentType("application/pdf");
         return res.send(outcome);
     } catch (e) {
-        console.error(e);
-        res.sendStatus(500);
+        if (e instanceof UserError) {
+            res.status(400).send(e.message);
+        } else {
+            res.sendStatus(500);
+        }
     }
 })
 
