@@ -5,8 +5,33 @@ const tmp = require('tmp-promise')
 const child_process = require('child-process-promise')
 const fs = require('fs');
 const process = require('process');
-const git = require('nodegit');
 const morgan = require('morgan');
+const session = require('express-session');
+const passport = require('passport');
+const GitHubStrategy = require('passport-github').Strategy;
+const config = require('config');
+
+passport.use(new GitHubStrategy({... config.get('githubOauthConfig')},
+  function(accessToken, refreshToken, profile, cb) {
+    cb(null, accessToken);
+  }
+));
+
+app.use(session({
+  secret: 'tex-renderer',
+  resave: true,
+  saveUninitialized: true,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+  done(null, user);
+});
 
 const safe_chars = /^[A-Za-z-_0-9.]+$/;
 
@@ -14,14 +39,16 @@ function is_valid({ github_name, github_repo }) {
     return safe_chars.test(github_name) && safe_chars.test(github_repo);
 }
 
-async function render(github_name, github_repo, root) {
+async function render(github_name, github_repo, root, token) {
     const tmpdir = await tmp.dir({ unsafeCleanup: true });
-    const repo = `https://github.com/${github_name}/${github_repo}`;
-    await git.Clone(repo, tmpdir.path);
+    const auth = token ? token + "@" : "";
+    const repo = `https://${auth}github.com/${github_name}/${github_repo}`;
+    const clone_cmd = `cd ${tmpdir.path} && git clone ${repo} --depth=1 .`;
     const latexmk = `latexmk -pdf ${root}`;
     const output_file = path.join(tmpdir.path, path.basename(root, ".tex") + ".pdf");
-    const cmd = `cd ${tmpdir.path} && ${latexmk}`;
-    await child_process.exec(cmd, { timeout: 60000 });
+    const latexmk_cmd = `cd ${tmpdir.path} && ${latexmk}`;
+    await child_process.exec(clone_cmd, { timeout: 20000 });
+    await child_process.exec(latexmk_cmd, { timeout: 40000 });
     const output = await fs.promises.readFile(output_file);
     tmpdir.cleanup();
     return output;
@@ -42,7 +69,7 @@ app.get('/render/:github_name/:github_repo/*', async (req, res) => {
             if (!path || path == ".." || !safe_chars.test(path)) throw new Error();
         });
         const tex_root = tex_paths.join('/');
-        const outcome = await render(github_name, github_repo, tex_root);
+        const outcome = await render(github_name, github_repo, tex_root, req.user);
         res.contentType("application/pdf");
         return res.send(outcome);
     } catch (e) {
@@ -54,5 +81,15 @@ app.get('/render/:github_name/:github_repo/*', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'))
 })
+
+app.get('/auth/',
+  passport.authenticate('github'));
+
+app.get('/auth/callback',
+  passport.authenticate('github', { failureRedirect: '/auth' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+  });
 
 app.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Listening"))

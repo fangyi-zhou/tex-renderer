@@ -1,0 +1,9 @@
+{
+  "githubOauthConfig":
+  {
+    "clientID": "GITHUB_OAUTH_CLIENT_ID",
+    "clientSecret": "GITHUB_OAUTH_CLIENT_SECRET",
+    "callbackURL": "GITHUB_OAUTH_CALLBACK_URL",
+    "scope": "repo"
+  }
+}
