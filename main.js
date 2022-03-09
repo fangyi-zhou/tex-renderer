@@ -20,7 +20,7 @@ let client = redis.createClient({
   url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
   legacyMode: true,
 });
-redisClient.connect().catch(console.error);
+client.connect().catch(console.error);
 
 passport.use(
   new GitHubStrategy({ ...config.get("githubOauthConfig") }, function (
