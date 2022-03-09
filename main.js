@@ -16,17 +16,11 @@ const redis = require("redis");
 const baseUrl = config.get("baseUrl");
 
 const RedisStore = require("connect-redis")(session);
-let client = redis.createClient(
-  process.env.REDIS_URL || "redis://127.0.0.1:6379"
-);
-
-client.on("error", function (err) {
-  console.log("Could not establish a connection with redis. " + err);
+let client = redis.createClient({
+  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  legacyMode: true,
 });
-
-client.on("connect", function (err) {
-  console.log("Connected to redis successfully");
-});
+redisClient.connect().catch(console.error);
 
 passport.use(
   new GitHubStrategy({ ...config.get("githubOauthConfig") }, function (
