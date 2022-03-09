@@ -1,4 +1,4 @@
-FROM node:buster
+FROM node:current
 
 RUN apt update && apt install texlive-latex-extra latexmk -y && rm -rf /var/lib/apt/lists
 
