@@ -21,6 +21,9 @@ let client = redis.createClient({
   legacyMode: true,
 });
 client.connect().catch(console.error);
+client.on("error", function (err) {
+  console.log("Could not establish a connection with redis. " + err);
+});
 
 passport.use(
   new GitHubStrategy({ ...config.get("githubOauthConfig") }, function (
