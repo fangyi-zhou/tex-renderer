@@ -22,7 +22,7 @@ async function main() {
     url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
     legacyMode: true,
   });
-  client.connect().catch(console.error);
+  await client.connect().catch(console.error);
   client.on("error", function (err) {
     console.log("Could not establish a connection with redis. " + err);
   });
