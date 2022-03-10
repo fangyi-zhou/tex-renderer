@@ -93,7 +93,7 @@ async function main() {
     return output;
   }
 
-  app.use(express.static(path.join(__dirname, "build")));
+  app.use(express.static(path.join(__dirname, "../build")));
   app.use(morgan("combined"));
 
   app.get("/render/:github_name/:github_repo/*", async (req, res) => {

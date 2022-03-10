@@ -16,4 +16,4 @@ EXPOSE 8080
 
 ENV NODE_ENV production
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "app/main.js" ]
