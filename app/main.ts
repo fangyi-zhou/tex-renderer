@@ -1,24 +1,33 @@
-const express = require("express");
-const path = require("path");
+import express from "express";
+import path from "path";
+import tmp from "tmp-promise";
+import child_process from "child-process-promise";
+import fs from "fs";
+import process from "process";
+import morgan from "morgan";
+import session from "express-session";
+import passport from "passport";
+import config from "config";
+import http from "http";
+import {createClient} from "redis";
+import {Strategy as GitHubStrategy} from "passport-github"
+import connect_redis from "connect-redis"
+
 const app = express();
-const tmp = require("tmp-promise");
-const child_process = require("child-process-promise");
-const fs = require("fs");
-const process = require("process");
-const morgan = require("morgan");
-const session = require("express-session");
-const passport = require("passport");
-const GitHubStrategy = require("passport-github").Strategy;
-const config = require("config");
-const http = require("http");
-const redis = require("redis");
+const baseUrl : string = config.get("baseUrl");
+const RedisStore = connect_redis(session);
+const safe_chars = /^[A-Za-z-_0-9.]+$/;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
-const baseUrl = config.get("baseUrl");
 
-const RedisStore = require("connect-redis")(session);
+function is_valid({ github_name, github_repo }: {github_name: string, github_repo: string}): boolean {
+  return safe_chars.test(github_name) && safe_chars.test(github_repo);
+}
+
+class UserError extends Error {}
 
 async function main() {
-  let client = redis.createClient({
+  let client = createClient({
     url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
     legacyMode: true,
   });
@@ -53,19 +62,16 @@ async function main() {
     done(null, user);
   });
 
-  passport.deserializeUser(function (user, done) {
+  passport.deserializeUser(function (user: Express.User, done) {
     done(null, user);
   });
 
-  const safe_chars = /^[A-Za-z-_0-9.]+$/;
-
-  function is_valid({ github_name, github_repo }) {
-    return safe_chars.test(github_name) && safe_chars.test(github_repo);
-  }
-
-  class UserError extends Error {}
-
-  async function render(github_name, github_repo, root, token) {
+  async function render(
+    github_name: string,
+    github_repo: string,
+    root: string,
+    token?: string
+  ) {
     const tmpdir = await tmp.dir({ unsafeCleanup: true });
     const auth = token ? token + "@" : "";
     const repo = `https://${auth}github.com/${github_name}/${github_repo}`;
@@ -112,7 +118,7 @@ async function main() {
         github_name,
         github_repo,
         tex_root,
-        req.user
+        req.user 
       );
       res.contentType("application/pdf");
       return res.send(outcome);
@@ -147,7 +153,7 @@ async function main() {
     );
   }, 25 * 60 * 1000);
 
-  app.listen(process.env.PORT || 8080, "0.0.0.0", () =>
+  app.listen(port, "0.0.0.0", () =>
     console.log("Listening")
   );
 }

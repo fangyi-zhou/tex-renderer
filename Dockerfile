@@ -12,7 +12,7 @@ COPY . .
 
 RUN yarn build
 
-EXPOSE 8080
+RUN cd app && tsc
 
 ENV NODE_ENV production
 

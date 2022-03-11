@@ -48,6 +48,13 @@
     ]
   },
   "devDependencies": {
+    "@types/child-process-promise": "^2.2.2",
+    "@types/config": "^0.0.41",
+    "@types/connect-redis": "^0.0.18",
+    "@types/express-session": "^1.17.4",
+    "@types/morgan": "^1.9.3",
+    "@types/passport": "^1.0.7",
+    "@types/passport-github": "^1.1.7",
     "prettier": "^2.5.1"
   }
 }
